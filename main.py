@@ -111,23 +111,21 @@ def registrar_atencion():
 
 
 def filtrar_medicos_menu():
-    """RF06: mostrar médicos y permitir que el usuario elija uno."""
-    lista = list(medicos.values())
-    print("\n===== MÉDICOS DISPONIBLES =====")
+    """Permite buscar médicos por especialidad."""
+    especialidad = input("Escribe la especialidad que deseas buscar: ").strip()
 
-    for i, medico in enumerate(lista, 1):
-        print(f"{i}) {medico}")
-    try:
-        opcion = int(input("Elige un médico (número): "))
-        if opcion < 1 or opcion > len(lista):
-            print("Opción no válida.")
-            return
+    resultados = filtrar_medicos_por_especialidad(
+        medicos.values(),
+        especialidad
+    )
 
-        medico_elegido = lista[opcion - 1]
-        print("\n===== MÉDICO SELECCIONADO =====")
-        print(medico_elegido)
-    except ValueError:
-        print("Debes ingresar un número.")
+    if not resultados:
+        print("No se encontraron médicos para esa especialidad.")
+        return
+
+    print("\n===== MÉDICOS ENCONTRADOS =====")
+    for medico in resultados:
+        print(medico)
 
 def cancelar_cita():
     """RF07"""
