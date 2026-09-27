@@ -1,11 +1,39 @@
+
 from paciente import Paciente
 from medico import Medico, filtrar_medicos_por_especialidad
 from cita import Cita
 
-pacientes = {}
-medicos = {}
-citas = {}
+pacientes = []   # lista de objetos Paciente
+medicos = []     # lista de objetos Medico
+citas = []       # lista de objetos Cita
 contador_citas = 0
+
+
+# ---------------------------------------------------------
+# Como ya no usamos diccionarios, para "buscar por código"
+# tenemos que recorrer la lista uno por uno hasta encontrarlo.
+# Estas 3 funciones hacen justamente eso.
+# ---------------------------------------------------------
+
+def buscar_paciente(codigo):
+    for paciente in pacientes:
+        if paciente.codigo == codigo:
+            return paciente
+    return None  # no se encontró
+
+
+def buscar_medico(codigo):
+    for medico in medicos:
+        if medico.codigo == codigo:
+            return medico
+    return None
+
+
+def buscar_cita(codigo):
+    for cita in citas:
+        if cita.codigo == codigo:
+            return cita
+    return None
 
 
 def cargar_medicos_demo():
@@ -21,55 +49,55 @@ def cargar_medicos_demo():
         ("M08", "Marco Díaz", "Cirugía General"),
     ]
     for codigo, nombre, especialidad in datos:
-        medicos[codigo] = Medico(codigo, nombre, especialidad)
+        medicos.append(Medico(codigo, nombre, especialidad))
 
 
 def registrar_paciente():
     """RF01"""
     codigo = input("Código del paciente: ").strip()
-    if codigo in pacientes:
+    if buscar_paciente(codigo) is not None:
         print("Error: código duplicado.")
         return
     nombre = input("Nombre: ").strip()
-    
-    try:  
-        edad = int(input("Edad: ")) 
+
+    try:
+        edad = int(input("Edad: "))
         # Aquí se crea el objeto y se dispara tu setter de nombre
-        pacientes[codigo] = Paciente(codigo, nombre, edad)
-        print(f"Registrado: {pacientes[codigo]}")
+        nuevo_paciente = Paciente(codigo, nombre, edad)
+        pacientes.append(nuevo_paciente)
+        print(f"Registrado: {nuevo_paciente}")
 
     except ValueError as e:
         # Unificamos ambos casos en un solo except
         if "invalid literal" in str(e):
             print("Edad no numérica.")
         else:
-            print(f"Error: {e}") # <-- AQUÍ SE IMPRIMIRÁ: "Error: El nombre solo debe contener letras."
-
+            print(f"Error: {e}")  # <-- AQUÍ SE IMPRIMIRÁ: "Error: El nombre solo debe contener letras."
 
 
 def registrar_medico():
     """RF02 (ya hay 8 cargados; esto es para sumar uno extra)."""
     codigo = input("Código del médico: ").strip()
-    if codigo in medicos:
+    if buscar_medico(codigo) is not None:
         print("Error: código duplicado.")
         return
     nombre = input("Nombre: ").strip()
     especialidad = input("Especialidad: ").strip()
     try:
-        medicos[codigo] = Medico(codigo, nombre, especialidad)
-        print(f"Registrado: {medicos[codigo]}")
+        nuevo_medico = Medico(codigo, nombre, especialidad)
+        medicos.append(nuevo_medico)
+        print(f"Registrado: {nuevo_medico}")
     except ValueError as e:
         print(f"Error: {e}")
 
 
 def elegir_medico():
     """Muestra la lista de médicos y devuelve el que el paciente elija."""
-    lista = list(medicos.values())
-    for i in range(len(lista)):
-        print(f"{i + 1}) {lista[i]}")
+    for i in range(len(medicos)):
+        print(f"{i + 1}) {medicos[i]}")
     try:
         opcion = int(input("Elige un médico (número): "))
-        return lista[opcion - 1]
+        return medicos[opcion - 1]
     except (ValueError, IndexError):
         print("Opción no válida.")
         return None
@@ -79,7 +107,8 @@ def programar_cita():
     """RF04"""
     global contador_citas
     codigo_paciente = input("Código del paciente: ").strip()
-    if codigo_paciente not in pacientes:
+    paciente = buscar_paciente(codigo_paciente)
+    if paciente is None:
         print("Error: paciente no existe.")
         return
     medico = elegir_medico()
@@ -88,19 +117,19 @@ def programar_cita():
     fecha = input("Fecha (dd/mm/aaaa): ").strip()
     contador_citas = contador_citas + 1
     codigo_cita = f"C{contador_citas:03d}"
-    cita = Cita(codigo_cita, pacientes[codigo_paciente], medico, fecha)
-    citas[codigo_cita] = cita
-    pacientes[codigo_paciente].agregar_cita(cita)
+    cita = Cita(codigo_cita, paciente, medico, fecha)
+    citas.append(cita)
+    paciente.agregar_cita(cita)
     print(f"Cita creada: {cita}")
 
 
 def registrar_atencion():
     """RF05"""
     codigo_cita = input("Código de la cita: ").strip()
-    if codigo_cita not in citas:
+    cita = buscar_cita(codigo_cita)
+    if cita is None:
         print("Error: esa cita no existe.")
         return
-    cita = citas[codigo_cita]
     if cita.estado == "cancelada":
         print("Error: no se puede atender una cita cancelada.")
         return
@@ -115,7 +144,7 @@ def filtrar_medicos_menu():
     especialidad = input("Escribe la especialidad que deseas buscar: ").strip()
 
     resultados = filtrar_medicos_por_especialidad(
-        medicos.values(),
+        medicos,
         especialidad
     )
 
@@ -127,14 +156,16 @@ def filtrar_medicos_menu():
     for medico in resultados:
         print(medico)
 
+
 def cancelar_cita():
     """RF07"""
     codigo_cita = input("Código de la cita: ").strip()
-    if codigo_cita not in citas:
+    cita = buscar_cita(codigo_cita)
+    if cita is None:
         print("Error: esa cita no existe.")
         return
     try:
-        citas[codigo_cita].cancelar()
+        cita.cancelar()
         print("Cita cancelada.")
     except ValueError as e:
         print(f"Error: {e}")
@@ -143,10 +174,10 @@ def cancelar_cita():
 def ver_historial():
     """RF03: muestra al paciente, sus citas y sus atenciones."""
     codigo = input("Código del paciente: ").strip()
-    if codigo not in pacientes:
+    paciente = buscar_paciente(codigo)
+    if paciente is None:
         print("Error: paciente no existe.")
         return
-    paciente = pacientes[codigo]
     print(paciente)
     print("Citas:", [str(c) for c in paciente.citas] or "sin citas")
     print("Historial:", paciente.historial or "sin atenciones")
