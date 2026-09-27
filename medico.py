@@ -1,8 +1,8 @@
 class Medico:
-    ESPECIALIDADES_VALIDAS = {
+    ESPECIALIDADES_VALIDAS = [
         "Dermatología", "Psicología", "Pediatría", "Ginecología",
         "Obstetricia", "Nutrición", "Medicina General", "Cirugía General",
-    }
+    ]
 
     def __init__(self, codigo, nombre, especialidad):
         self._codigo = codigo
