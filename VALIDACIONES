@@ -1,0 +1,109 @@
+# VALIDAR DNI
+
+def validar_dni(dni):
+    errores = []
+    dni = str(dni).strip()
+    if not dni:
+        errores.append("El DNI está vacío.")
+    if not dni.isascii():
+        errores.append("El DNI debe contener solo caracteres ASCII.")
+    if not dni.isdigit():
+        errores.append("El DNI debe contener solo números.")
+    if len(dni) != 8:
+        errores.append("El DNI debe tener exactamente 8 dígitos.")
+    if errores:
+        return errores
+    return True
+
+
+# VALIDAR RUC
+
+def validar_ruc(ruc):
+    ruc = str(ruc).strip()
+    if ruc!= 11 or not ruc.isdigit():
+        return False
+    if not ruc.startswith(('10', '15', '17', '20')):
+        return False
+
+    # Módulo 11
+    pesos = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2]
+    suma = 0
+    for i in range(10):
+        suma += int(ruc[i]) * pesos[i]
+    digito = 11 - (suma % 11)
+    if digito == 10:
+        digito = 0
+    elif digito == 11:
+        digito = 1
+    return digito == int(ruc[10])
+
+
+# VALIDAR XML
+
+def validar_xml(xml):
+    if not isinstance(xml, str):
+        raise TypeError("El XML debe ser un texto")
+    xml = xml.strip()
+    if not xml.isascii():
+        raise ValueError("El XML debe contener solo caracteres ASCII")
+    if not xml.startswith("<root>"):
+        raise ValueError("El XML debe iniciar con <root>")
+    if not xml.endswith("</root>"):
+        raise ValueError("El XML debe terminar con </root>")
+    return True
+
+
+# BUCLE CON WHILE TRUE
+
+while True:
+    print("\n--- MENÚ DE VALIDACIÓN ---")
+    print("1. Validar DNI")
+    print("2. Validar RUC")
+    print("3. Validar XML")
+    print("4. Salir")
+    opcion = input("Seleccione una opción (1-4): ").strip()
+    match opcion:
+        case "1":
+
+            dni_usuario = input("Ingrese el número de DNI a validar: ")
+            resultado = validar_dni(dni_usuario)
+            if resultado is True:
+                print("DNI: VÁLIDO")
+            else:
+                print("DNI: INVÁLIDO")
+                for error in resultado:
+                    print("-", error)
+
+        case "2":
+            ruc_usuario = input("Ingrese el número de RUC a validar: ")
+            if validar_ruc(ruc_usuario):
+                print("RUC: VÁLIDO")
+            else:
+                print("RUC: INVÁLIDO")
+
+
+        case "3":
+            xml_usuario = input("Ingrese el texto XML a validar: ")
+            try:
+                if validar_xml(xml_usuario):
+                    print("XML: VÁLIDO")
+
+            except (TypeError, ValueError) as error:
+                print("XML: INVÁLIDO -", error)
+
+        case "4":
+            print("Saliendo del sistema...")
+            break
+
+        case _:
+
+            print("Opción no válida. Debe ingresar un número del 1 al 4.")
+
+    # Otra validación antes de continuar el bucle
+    respuesta = input(
+        "\n¿Quieres validar otro documento? (si/no): "
+    ).strip().lower()
+    if respuesta != "si":
+
+        print("¡Gracias por usar el sistema de validación!")
+        break
