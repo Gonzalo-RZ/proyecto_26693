@@ -100,9 +100,7 @@ while True:
             print("Opción no válida. Debe ingresar un número del 1 al 4.")
 
     # Otra validación antes de continuar el bucle
-    respuesta = input(
-        "\n¿Quieres validar otro documento? (si/no): "
-    ).strip().lower()
+    respuesta = input("\n¿Quieres validar otro documento? (si/no): ").strip().lower()
     if respuesta != "si":
 
         print("¡Gracias por usar el sistema de validación!")
