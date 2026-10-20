@@ -1,0 +1,90 @@
+A.	Implementar el código
+class Ciudadano:
+    """Clase 1: Representa a la persona que realiza el trámite en la comisaría."""
+    def __init__(self, dni: str, nombre: str):
+        self.dni = dni
+        self.nombre = nombre
+
+class ExpedientePolicial:
+    """Clase 2: Representa la ocurrencia, citación o trámite documentario."""
+    def __init__(self, id_expediente: int, ciudadano: Ciudadano, tipo_tramite: str, estado: str = "EN PROCESO"):
+        self.id_expediente = id_expediente
+        self.ciudadano = ciudadano
+        self.tipo_tramite = tipo_tramite
+        self.estado = estado
+
+    def imprimir_cargo(self):
+        print("\n" + "=" * 50)
+        print("    COMISARÍA PNP PAYET - INDEPENDENCIA")
+        print("          CARGO DE RECEPCIÓN DIGITAL")
+        print("=" * 50)
+        print(f" EXPEDIENTE N° : {self.id_expediente:04d}")
+        print(f" DNI/CÓDIGO    : {self.ciudadano.dni}")
+        print(f" CIUDADANO     : {self.ciudadano.nombre}")
+        print(f" TRÁMITE       : {self.tipo_tramite}")
+        print(f" ESTADO ACTUAL : {self.estado}")
+        print("=" * 50)
+        print(" Trámite registrado en el sistema oficial.")
+        print(" Keep this ticket for official verification.")
+        print("=" * 50 + "\n")
+
+class GestionComisaria:
+    """Clase 3: Administra el arreglo/lista lineal de expedientes y sus operaciones."""
+    def __init__(self):
+        self.lista_expedientes = []
+        self.contador_id = 1
+
+    def registrar_expediente(self, dni: str, nombre: str, tipo_tramite: str):
+        nuevo_ciudadano = Ciudadano(dni, nombre)
+        nuevo_expediente = ExpedientePolicial(self.contador_id, nuevo_ciudadano, tipo_tramite)
+        self.lista_expedientes.append(nuevo_expediente)
+        self.contador_id += 1
+        print("\n[ÉXITO]: Registro guardado correctamente.")
+        nuevo_expediente.imprimir_cargo()
+
+    def buscar_por_dni(self, dni_buscar: str):
+        encontrados = [exp for exp in self.lista_expedientes if exp.ciudadano.dni == dni_buscar]
+        return encontrados
+
+    def cancelar_expediente(self, id_expediente: int) -> bool:
+        for i, exp in enumerate(self.lista_expedientes):
+            if exp.id_expediente == id_expediente:
+                self.lista_expedientes.pop(i)
+                return True
+        return False
+
+    def ordenar_por_burbuja(self):
+        n = len(self.lista_expedientes)
+        if n <= 1:
+            return
+        for i in range(n - 1):
+            for j in range(0, n - i - 1):
+                if self.lista_expedientes[j].id_expediente > self.lista_expedientes[j + 1].id_expediente:
+                    self.lista_expedientes[j], self.lista_expedientes[j + 1] = (
+                        self.lista_expedientes[j + 1],
+                        self.lista_expedientes[j],
+                    )
+
+    def listar_todos(self):
+        if not self.lista_expedientes:
+            print("\n[AVISO]: No hay expedientes registrados en la Mesa de Partes.")
+            return
+        print("\n" + "-" * 65)
+        print(f"{'ID':<6} | {'DNI':<10} | {'CIUDADANO':<20} | {'TRÁMITE':<20}")
+        print("-" * 65)
+        for exp in self.lista_expedientes:
+            print(f"{exp.id_expediente:<6} | {exp.ciudadano.dni:<10} | {exp.ciudadano.nombre:<20} | {exp.tipo_tramite:<20}")
+        print("-" * 65)
+
+def main():
+    sistema = GestionComisaria()
+
+    while True:
+        print("\n==================================================")
+        print("  SISTEMA DIGITAL DE ATENCIÓN - COMISARÍA PAYET   ")
+        print("==================================================")
+        print("1. Registrar nuevo trámite / ocurrencia")
+        print("2. Buscar expediente por DNI")
+        print("3. Mostrar todos los expedientes")
+        print("4. Ordenar expedientes (Método Burbuja)")
+        print("5. Cancelar/Eliminar expediente")
