@@ -1,9 +1,9 @@
-A.	Implementar el código
 class Ciudadano:
     """Clase 1: Representa a la persona que realiza el trámite en la comisaría."""
     def __init__(self, dni: str, nombre: str):
         self.dni = dni
         self.nombre = nombre
+
 
 class ExpedientePolicial:
     """Clase 2: Representa la ocurrencia, citación o trámite documentario."""
@@ -27,6 +27,7 @@ class ExpedientePolicial:
         print(" Trámite registrado en el sistema oficial.")
         print(" Keep this ticket for official verification.")
         print("=" * 50 + "\n")
+
 
 class GestionComisaria:
     """Clase 3: Administra el arreglo/lista lineal de expedientes y sus operaciones."""
@@ -76,6 +77,7 @@ class GestionComisaria:
             print(f"{exp.id_expediente:<6} | {exp.ciudadano.dni:<10} | {exp.ciudadano.nombre:<20} | {exp.tipo_tramite:<20}")
         print("-" * 65)
 
+
 def main():
     sistema = GestionComisaria()
 
@@ -88,3 +90,73 @@ def main():
         print("3. Mostrar todos los expedientes")
         print("4. Ordenar expedientes (Método Burbuja)")
         print("5. Cancelar/Eliminar expediente")
+        print("6. Salir")
+        
+        opcion = input("Seleccione una opción (1-6): ").strip()
+
+        if opcion == "1":
+            dni = input("Ingrese DNI del ciudadano (8 dígitos): ").strip()
+            if len(dni) != 8 or not dni.isdigit():
+                print("\n[ERROR]: El DNI debe ser numérico y contener exactamente 8 dígitos.")
+                continue
+
+            nombre = input("Ingrese Apellidos y Nombres completos: ").strip()
+            if not nombre:
+                print("\n[ERROR]: El nombre no puede estar vacío.")
+                continue
+
+            print("\nSELECCIONE EL TIPO DE TRÁMITE:")
+            print("1. Denuncia por Delito / Falta")
+            print("2. Constancia por Pérdida de Documentos")
+            print("3. Citación Policial / Notificación")
+            print("4. Garantías Personales")
+            
+            op_tipo = input("Opción (1-4): ").strip()
+            tipos = {
+                "1": "Denuncia por Delito",
+                "2": "Pérdida de Documentos",
+                "3": "Citación Policial",
+                "4": "Garantías Personales"
+            }
+            tipo_final = tipos.get(op_tipo, "Trámite General")
+
+            sistema.registrar_expediente(dni, nombre, tipo_final)
+
+        elif opcion == "2":
+            dni_buscar = input("Ingrese el DNI a consultar: ").strip()
+            resultados = sistema.buscar_por_dni(dni_buscar)
+            if resultados:
+                print(f"\n[SE ENCONTRARON {len(resultados)} REGISTRO(S)]:")
+                for exp in resultados:
+                    exp.imprimir_cargo()
+            else:
+                print("\n[INFORMACIÓN]: No se encontraron expedientes asociados al DNI ingresado.")
+
+        elif opcion == "3":
+            sistema.listar_todos()
+
+        elif opcion == "4":
+            sistema.ordenar_por_burbuja()
+            print("\n[ÉXITO]: Expedientes reordenados correctamente por número correlativo.")
+            sistema.listar_todos()
+
+        elif opcion == "5":
+            try:
+                id_del = int(input("Ingrese el ID del expediente a cancelar: "))
+                if sistema.cancelar_expediente(id_del):
+                    print(f"\n[ÉXITO]: El expediente N° {id_del} ha sido eliminado correctamente.")
+                else:
+                    print(f"\n[ERROR]: No existe un expediente registrado con el ID {id_del}.")
+            except ValueError:
+                print("\n[ERROR]: Debe ingresar un valor numérico válido.")
+
+        elif opcion == "6":
+            print("\nSaliendo del sistema de la Comisaría PNP Payet... ¡Hasta luego!")
+            break
+
+        else:
+            print("\n[ERROR]: Opción inválida. Seleccione un número entre 1 y 6.")
+
+
+if __name__ == "__main__":
+    main()
