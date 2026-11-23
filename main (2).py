@@ -1,161 +1,152 @@
-class Ciudadano:
-    """Clase 1: Representa a la persona que realiza el trámite en la comisaría."""
-    def __init__(self, dni: str, nombre: str):
-        self.dni = dni
-        self.nombre = nombre
+"""
+main.py
+-------
+Sistema de escritorio para procesos de efectuación de denuncias
+Comisaría PNP Payet, Lima 2026 - Versión v2.1 (corregida)
+
+Punto de entrada del sistema. Aquí se instancian y llaman los métodos
+de las 3 clases del proyecto: Ciudadano, ExpedientePolicial (entidades.py)
+y GestorExpedientes (gestion.py), tal como exige la consigna.
+
+TEMA01: control de versiones (ver README/GitHub) y estructuras de
+control secuencial / condicional / repetitiva (todo este archivo).
+"""
+
+from entidades import Ciudadano
+from gestion import GestorExpedientes
 
 
-class ExpedientePolicial:
-    """Clase 2: Representa la ocurrencia, citación o trámite documentario."""
-    def __init__(self, id_expediente: int, ciudadano: Ciudadano, tipo_tramite: str, estado: str = "EN PROCESO"):
-        self.id_expediente = id_expediente
-        self.ciudadano = ciudadano
-        self.tipo_tramite = tipo_tramite
-        self.estado = estado
-
-    def imprimir_cargo(self):
-        print("\n" + "=" * 50)
-        print("    COMISARÍA PNP PAYET - INDEPENDENCIA")
-        print("          CARGO DE RECEPCIÓN DIGITAL")
-        print("=" * 50)
-        print(f" EXPEDIENTE N° : {self.id_expediente:04d}")
-        print(f" DNI/CÓDIGO    : {self.ciudadano.dni}")
-        print(f" CIUDADANO     : {self.ciudadano.nombre}")
-        print(f" TRÁMITE       : {self.tipo_tramite}")
-        print(f" ESTADO ACTUAL : {self.estado}")
-        print("=" * 50)
-        print(" Trámite registrado en el sistema oficial.")
-        print(" Conserve este cargo para su verificación oficial.")
-        print("=" * 50 + "\n")
+def mostrar_menu():
+    print("\n==================================================")
+    print(" MESA DE PARTES DIGITAL - COMISARÍA PNP PAYET v2.1")
+    print("==================================================")
+    print("1. Registrar trámite")
+    print("2. Buscar por DNI")
+    print("3. Listar expedientes")
+    print("4. Ordenar expedientes (burbuja por N°)")
+    print("5. Cancelar expediente")
+    print("6. Demo recursividad (factorial y conteo)")
+    print("0. Salir")
+    print("--------------------------------------------------")
 
 
-class GestionComisaria:
-    """Clase 3: Administra el arreglo/lista lineal de expedientes y sus operaciones."""
-    def __init__(self):
-        self.lista_expedientes = []
-        self.contador_id = 1
+def leer_opcion_entero(mensaje: str):
+    """Estructura condicional de validación: evita que el programa truene
+    si el usuario ingresa texto donde se espera un número (CP-13)."""
+    valor = input(mensaje)
+    if not valor.strip().lstrip("-").isdigit():
+        return None
+    return int(valor)
 
-    def registrar_expediente(self, dni: str, nombre: str, tipo_tramite: str):
-        nuevo_ciudadano = Ciudadano(dni, nombre)
-        nuevo_expediente = ExpedientePolicial(self.contador_id, nuevo_ciudadano, tipo_tramite)
-        self.lista_expedientes.append(nuevo_expediente)
-        self.contador_id += 1
-        print("\n[ÉXITO]: Registro guardado correctamente.")
-        nuevo_expediente.imprimir_cargo()
 
-    def buscar_por_dni(self, dni_buscar: str):
-        encontrados = [exp for exp in self.lista_expedientes if exp.ciudadano.dni == dni_buscar]
-        return encontrados
+def registrar(gestor: GestorExpedientes):
+    print("\n--- Registro de trámite ---")
+    print("Tipos de trámite: 1) Denuncia  2) Pérdida de Documentos  "
+          "3) Citación Policial  4) Garantías Personales")
 
-    def cancelar_expediente(self, id_expediente: int) -> bool:
-        for i, exp in enumerate(self.lista_expedientes):
-            if exp.id_expediente == id_expediente:
-                self.lista_expedientes.pop(i)
-                return True
-        return False
+    dni = input("Ingrese su código de estudiante o DNI: ")
+    if not Ciudadano.validar_dni(dni):
+        print("❌ DNI inválido. Debe tener 8 dígitos numéricos.")
+        return
 
-    def ordenar_por_burbuja(self):
-        n = len(self.lista_expedientes)
-        if n <= 1:
-            return
-        for i in range(n - 1):
-            for j in range(0, n - i - 1):
-                if self.lista_expedientes[j].id_expediente > self.lista_expedientes[j + 1].id_expediente:
-                    self.lista_expedientes[j], self.lista_expedientes[j + 1] = (
-                        self.lista_expedientes[j + 1],
-                        self.lista_expedientes[j],
-                    )
+    nombre = input("Ingrese nombres y apellidos: ")
+    tipo = leer_opcion_entero("Ingrese el tipo de trámite (1-4): ")
+    if tipo is None:
+        print("❌ Debe ingresar un número de opción válido.")
+        return
 
-    def listar_todos(self):
-        if not self.lista_expedientes:
-            print("\n[AVISO]: No hay expedientes registrados en la Mesa de Partes.")
-            return
-        print("\n" + "-" * 65)
-        print(f"{'ID':<6} | {'DNI':<10} | {'CIUDADANO':<20} | {'TRÁMITE':<20}")
-        print("-" * 65)
-        for exp in self.lista_expedientes:
-            print(f"{exp.id_expediente:<6} | {exp.ciudadano.dni:<10} | {exp.ciudadano.nombre:<20} | {exp.tipo_tramite:<20}")
-        print("-" * 65)
+    ok, resultado = gestor.registrar_expediente(dni, nombre, tipo)
+    if ok:
+        expediente = resultado
+        print(f"\n✅ Expediente N° {expediente.numero:04d} guardado correctamente.")
+        print(expediente.generar_cargo())
+    else:
+        print(f"❌ {resultado}")
+
+
+def buscar(gestor: GestorExpedientes):
+    print("\n--- Búsqueda por DNI ---")
+    dni = input("Ingrese el DNI a buscar: ")
+    resultados = gestor.buscar_por_dni(dni)
+    if not resultados:
+        print("No se encontraron expedientes asociados a ese DNI.")
+        return
+    for exp in resultados:
+        print(exp.generar_cargo())
+
+
+def listar(gestor: GestorExpedientes):
+    print("\n--- Listado de expedientes ---")
+    expedientes = gestor.listar_expedientes()
+    if not expedientes:
+        print("No hay expedientes registrados.")
+        return
+    encabezado = f"{'N°':<6}{'DNI':<12}{'NOMBRE':<32}{'TRÁMITE':<22}{'ESTADO':<12}"
+    print(encabezado)
+    print("-" * len(encabezado))
+    for exp in expedientes:
+        print(exp.fila_listado())
+
+
+def ordenar(gestor: GestorExpedientes):
+    print("\n--- Expedientes ordenados (Método Burbuja, por N°) ---")
+    ordenados = gestor.ordenar_burbuja_por_numero()
+    for exp in ordenados:
+        print(exp.fila_listado())
+
+    print("\n--- Expedientes ordenados (Método Selección, por nombre) ---")
+    ordenados_nombre = gestor.ordenar_seleccion_por_nombre()
+    for exp in ordenados_nombre:
+        print(exp.fila_listado())
+
+
+def cancelar(gestor: GestorExpedientes):
+    print("\n--- Cancelar expediente ---")
+    numero = leer_opcion_entero("Ingrese el N° de expediente a cancelar: ")
+    if numero is None:
+        print("❌ Valor numérico inválido.")
+        return
+    ok, mensaje = gestor.cancelar_expediente(numero)
+    print(("✅ " if ok else "❌ ") + mensaje)
+
+
+def demo_recursividad(gestor: GestorExpedientes):
+    print("\n--- Demo de recursividad (TEMA07) ---")
+    n = leer_opcion_entero("Ingrese un número para calcular su factorial: ")
+    if n is None or n < 0:
+        print("❌ Debe ingresar un número entero positivo.")
+        return
+    print(f"{n}! = {GestorExpedientes.factorial(n)}")
+    print(f"Cantidad de expedientes (conteo recursivo): "
+          f"{gestor.contar_expedientes_recursivo()}")
 
 
 def main():
-    sistema = GestionComisaria()
+    gestor = GestorExpedientes()
 
-    while True:
-        print("\n==================================================")
-        print("  SISTEMA DIGITAL DE ATENCIÓN - COMISARÍA PAYET   ")
-        print("==================================================")
-        print("1. Registrar nuevo trámite / ocurrencia")
-        print("2. Buscar expediente por DNI")
-        print("3. Mostrar todos los expedientes")
-        print("4. Ordenar expedientes (Método Burbuja)")
-        print("5. Cancelar/Eliminar expediente")
-        print("6. Salir")
+    # TEMA01: estructura de control repetitiva (menú principal).
+    opcion = -1
+    while opcion != 0:
+        mostrar_menu()
+        opcion = leer_opcion_entero("Seleccione una opción: ")
 
-        opcion = input("Seleccione una opción (1-6): ").strip()
-
-        if opcion == "1":
-            dni = input("Ingrese DNI del ciudadano (8 dígitos): ").strip()
-            if len(dni) != 8 or not dni.isdigit():
-                print("\n[ERROR]: El DNI debe ser numérico y contener exactamente 8 dígitos.")
-                continue
-
-            nombre = input("Ingrese Apellidos y Nombres completos: ").strip()
-            if not nombre:
-                print("\n[ERROR]: El nombre no puede estar vacío.")
-                continue
-
-            print("\nSELECCIONE EL TIPO DE TRÁMITE:")
-            print("1. Denuncia por Delito / Falta")
-            print("2. Constancia por Pérdida de Documentos")
-            print("3. Citación Policial / Notificación")
-            print("4. Garantías Personales")
-
-            op_tipo = input("Opción (1-4): ").strip()
-            tipos = {
-                "1": "Denuncia por Delito",
-                "2": "Pérdida de Documentos",
-                "3": "Citación Policial",
-                "4": "Garantías Personales"
-            }
-            tipo_final = tipos.get(op_tipo, "Trámite General")
-
-            sistema.registrar_expediente(dni, nombre, tipo_final)
-
-        elif opcion == "2":
-            dni_buscar = input("Ingrese el DNI a consultar: ").strip()
-            resultados = sistema.buscar_por_dni(dni_buscar)
-            if resultados:
-                print(f"\n[SE ENCONTRARON {len(resultados)} REGISTRO(S)]:")
-                for exp in resultados:
-                    exp.imprimir_cargo()
-            else:
-                print("\n[INFORMACIÓN]: No se encontraron expedientes asociados al DNI ingresado.")
-
-        elif opcion == "3":
-            sistema.listar_todos()
-
-        elif opcion == "4":
-            sistema.ordenar_por_burbuja()
-            print("\n[ÉXITO]: Expedientes reordenados correctamente por número correlativo.")
-            sistema.listar_todos()
-
-        elif opcion == "5":
-            try:
-                id_del = int(input("Ingrese el ID del expediente a cancelar: "))
-                if sistema.cancelar_expediente(id_del):
-                    print(f"\n[ÉXITO]: El expediente N° {id_del} ha sido eliminado correctamente.")
-                else:
-                    print(f"\n[ERROR]: No existe un expediente registrado con el ID {id_del}.")
-            except ValueError:
-                print("\n[ERROR]: Debe ingresar un valor numérico válido.")
-
-        elif opcion == "6":
-            print("\nSaliendo del sistema de la Comisaría PNP Payet... ¡Hasta luego!")
-            break
-
+        # TEMA01: estructura de control condicional (ramas del menú).
+        if opcion == 1:
+            registrar(gestor)
+        elif opcion == 2:
+            buscar(gestor)
+        elif opcion == 3:
+            listar(gestor)
+        elif opcion == 4:
+            ordenar(gestor)
+        elif opcion == 5:
+            cancelar(gestor)
+        elif opcion == 6:
+            demo_recursividad(gestor)
+        elif opcion == 0:
+            print("\nSaliendo del sistema. ¡Hasta pronto!")
         else:
-            print("\n[ERROR]: Opción inválida. Seleccione un número entre 1 y 6.")
+            print("❌ Opción no válida. Intente nuevamente.")
 
 
 if __name__ == "__main__":
